@@ -23,7 +23,7 @@ interface PulseStore {
 
 export const usePulseStore = create<PulseStore>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       user: null,
       savedPlaces: [],
       activePlace: null,

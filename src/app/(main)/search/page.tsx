@@ -1,29 +1,33 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import { MOCK_PLACES } from "@/lib/data"
 import { Search as SearchIcon, X, SlidersHorizontal, Star } from "lucide-react"
 import { Card } from "@/components/ui/Card"
 import { SegmentedControl } from "@/components/ui/SegmentedControl"
 import { Place } from "@/types"
+import { placeService } from "@/lib/services"
+import { Skeleton } from "@/components/ui/Skeleton"
+import Image from "next/image"
+
+const categories = ["All", "French Cuisine", "Brunch Spot", "Wine Bar", "Café", "Bookstore"]
 
 export default function SearchPage() {
   const [query, setQuery] = useState("")
   const [category, setCategory] = useState("All")
-  const [results, setResults] = useState<Place[]>(MOCK_PLACES)
+  const [results, setResults] = useState<Place[]>([])
+  const [loading, setLoading] = useState(true)
 
-  const handleSearch = useCallback(() => {
-    const filtered = MOCK_PLACES.filter(place =>
-      place.name.toLowerCase().includes(query.toLowerCase()) &&
-      (category === "All" || place.category === category)
-    )
-    setResults(filtered)
+  const performSearch = useCallback(async () => {
+    setLoading(true)
+    const data = await placeService.search(query, category)
+    setResults(data)
+    setLoading(false)
   }, [query, category])
 
   useEffect(() => {
-    const timer = setTimeout(handleSearch, 300)
+    const timer = setTimeout(performSearch, 400)
     return () => clearTimeout(timer)
-  }, [handleSearch])
+  }, [performSearch])
 
   return (
     <div className="p-6 space-y-6">
@@ -50,11 +54,14 @@ export default function SearchPage() {
         </div>
       </header>
 
-      <SegmentedControl
-        options={["All", "French Cuisine", "Brunch Spot", "Wine Bar"]}
-        value={category}
-        onChange={setCategory}
-      />
+      <div className="overflow-x-auto -mx-6 px-6 no-scrollbar">
+        <SegmentedControl
+          options={categories}
+          value={category}
+          onChange={setCategory}
+          className="min-w-max"
+        />
+      </div>
 
       <div className="space-y-4">
         <div className="flex items-center justify-between">
@@ -65,27 +72,41 @@ export default function SearchPage() {
         </div>
 
         <div className="grid gap-4">
-          {results.map((place) => (
-            <Card key={place.id} padding="none" className="overflow-hidden flex flex-col active:scale-[0.98] transition-transform">
-              <div className="h-48">
-                <img src={place.image} className="w-full h-full object-cover" alt={place.name} />
-              </div>
-              <div className="p-4 flex items-center justify-between">
-                <div>
-                  <h3 className="font-bold">{place.name}</h3>
-                  <p className="text-xs text-ios-secondary-label">{place.category}</p>
+          {loading ? (
+            [1, 2, 3].map(i => (
+              <Card key={i} padding="none" className="overflow-hidden h-64">
+                <Skeleton className="h-48 w-full rounded-none" />
+                <div className="p-4 space-y-2">
+                  <Skeleton className="h-4 w-1/2" />
+                  <Skeleton className="h-3 w-1/4" />
                 </div>
-                <div className="flex items-center gap-1 bg-ios-secondary-bg dark:bg-white/10 px-2 py-1 rounded-lg">
-                  <Star className="w-3 h-3 text-ios-yellow fill-ios-yellow" />
-                  <span className="text-xs font-bold">{place.rating}</span>
+              </Card>
+            ))
+          ) : (
+            <>
+              {results.map((place) => (
+                <Card key={place.id} padding="none" className="overflow-hidden flex flex-col active:scale-[0.98] transition-transform relative h-72">
+                  <div className="h-52 relative">
+                    <Image src={place.image} fill className="object-cover" alt={place.name} />
+                  </div>
+                  <div className="p-4 flex items-center justify-between">
+                    <div>
+                      <h3 className="font-bold">{place.name}</h3>
+                      <p className="text-xs text-ios-secondary-label">{place.category}</p>
+                    </div>
+                    <div className="flex items-center gap-1 bg-ios-secondary-bg dark:bg-white/10 px-2 py-1 rounded-lg">
+                      <Star className="w-3 h-3 text-ios-yellow fill-ios-yellow" />
+                      <span className="text-xs font-bold">{place.rating}</span>
+                    </div>
+                  </div>
+                </Card>
+              ))}
+              {results.length === 0 && (
+                <div className="text-center py-20 text-ios-secondary-label">
+                  No results found for your search.
                 </div>
-              </div>
-            </Card>
-          ))}
-          {results.length === 0 && (
-            <div className="text-center py-20 text-ios-secondary-label">
-              No results found for &quot;{query}&quot;
-            </div>
+              )}
+            </>
           )}
         </div>
       </div>

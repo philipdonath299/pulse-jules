@@ -1,34 +1,53 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useCallback } from "react"
 import Map, { Marker, NavigationControl } from "react-map-gl/mapbox"
 import "mapbox-gl/dist/mapbox-gl.css"
-import { MOCK_PLACES } from "@/lib/data"
-import { MapPin, Search } from "lucide-react"
+import { MapPin, Search, RefreshCw } from "lucide-react"
 import { PlaceDetails } from "@/components/ui/PlaceDetails"
 import { Place } from "@/types"
+import { placeService } from "@/lib/services"
+import { motion, AnimatePresence } from "framer-motion"
+import { cn } from "@/lib/utils"
 
-// In a real app, this would be an env variable
 const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || "pk.eyJ1IjoibW9ja2VyLWFwcGxlIiwiYSI6ImNsdzF4eHh4eDAxNXkyam8xNXg0eDAxNXgifQ.mock_token"
 
 export default function MapPage() {
+  const [places, setPlaces] = useState<Place[]>([])
   const [selectedPlace, setSelectedPlace] = useState<Place | null>(null)
+  const [loading, setLoading] = useState(false)
   const [viewState, setViewState] = useState({
     latitude: 48.8584,
     longitude: 2.3488,
     zoom: 13
   })
+  const [showSearchHere, setShowSearchHere] = useState(false)
+
+  const fetchPlaces = useCallback(async () => {
+    setLoading(true)
+    const data = await placeService.getNearby(viewState.latitude, viewState.longitude)
+    setPlaces(data)
+    setLoading(false)
+    setShowSearchHere(false)
+  }, [viewState.latitude, viewState.longitude])
+
+  useEffect(() => {
+    fetchPlaces()
+  }, [fetchPlaces])
 
   return (
     <div className="relative h-screen w-full bg-ios-secondary-bg overflow-hidden">
       <Map
         {...viewState}
-        onMove={evt => setViewState(evt.viewState)}
+        onMove={evt => {
+          setViewState(evt.viewState)
+          if (!showSearchHere) setShowSearchHere(true)
+        }}
         mapStyle="mapbox://styles/mapbox/dark-v11"
         mapboxAccessToken={MAPBOX_TOKEN}
         style={{ width: "100%", height: "100%" }}
       >
-        {MOCK_PLACES.map((place) => (
+        {places.map((place) => (
           <Marker
             key={place.id}
             latitude={place.location.lat}
@@ -53,7 +72,26 @@ export default function MapPage() {
         </div>
       </Map>
 
-      {/* Floating Controls */}
+      {/* Search Here Button */}
+      <AnimatePresence>
+        {showSearchHere && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 10 }}
+            className="absolute top-32 left-1/2 -translate-x-1/2 z-10"
+          >
+            <button
+              onClick={fetchPlaces}
+              className="bg-white dark:bg-ios-tertiary-bg px-4 py-2 rounded-full shadow-xl border border-ios-secondary-bg flex items-center gap-2 text-sm font-bold text-ios-blue active:scale-95 transition-transform"
+            >
+              <RefreshCw className={cn("w-4 h-4", loading && "animate-spin")} />
+              Search in this area
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <div className="absolute top-20 left-4 right-16 pointer-events-none">
         <div className="bg-white/80 dark:bg-ios-tertiary-bg/80 backdrop-blur-md px-4 py-3 rounded-2xl shadow-lg border border-white/20 flex items-center gap-3 pointer-events-auto">
           <Search className="w-5 h-5 text-ios-secondary-label" />

@@ -1,18 +1,46 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import { motion } from "framer-motion"
-import { MOCK_PLACES } from "@/lib/data"
 import { Star, MapPin, Heart, Share2 } from "lucide-react"
 import { usePulseStore } from "@/store/useStore"
 import { cn } from "@/lib/utils"
 import Image from "next/image"
+import { placeService } from "@/lib/services"
+import { Place } from "@/types"
+import { Skeleton } from "@/components/ui/Skeleton"
 
 export default function ExplorePage() {
+  const [places, setPlaces] = useState<Place[]>([])
+  const [loading, setLoading] = useState(true)
   const { savePlace, savedPlaces, removePlace } = usePulseStore()
+
+  useEffect(() => {
+    placeService.getTrending().then(data => {
+      setPlaces(data)
+      setLoading(false)
+    })
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="h-screen bg-black flex flex-col p-6 space-y-6">
+        <div className="flex-1 rounded-3xl bg-white/5 animate-pulse" />
+        <div className="h-40 space-y-4">
+          <Skeleton className="h-8 w-1/2 bg-white/10" />
+          <Skeleton className="h-4 w-3/4 bg-white/10" />
+          <div className="flex gap-4">
+            <Skeleton className="h-14 w-14 rounded-full bg-white/10" />
+            <Skeleton className="h-14 flex-1 rounded-3xl bg-white/10" />
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="h-screen overflow-y-scroll snap-y snap-mandatory smooth-scroll bg-black">
-      {MOCK_PLACES.map((place) => {
+      {places.map((place) => {
         const isSaved = savedPlaces.some(p => p.id === place.id)
 
         return (
