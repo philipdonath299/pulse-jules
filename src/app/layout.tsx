@@ -5,6 +5,7 @@ import { FloatingTabBar } from "@/components/layout/FloatingTabBar";
 import { DynamicIsland } from "@/components/layout/DynamicIsland";
 import { PageTransition } from "@/components/layout/PageTransition";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { GoogleMapsProvider } from "@/components/GoogleMapsProvider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -48,11 +49,13 @@ export default function RootLayout({
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
           <div className="relative flex min-h-screen flex-col">
             <DynamicIsland />
-            <main className="flex-1 pb-24">
-              <PageTransition>
-                {children}
-              </PageTransition>
-            </main>
+            <GoogleMapsProvider>
+              <main className="flex-1 pb-24">
+                <PageTransition>
+                  {children}
+                </PageTransition>
+              </main>
+            </GoogleMapsProvider>
             <FloatingTabBar />
           </div>
         </ThemeProvider>

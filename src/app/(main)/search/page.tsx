@@ -5,29 +5,56 @@ import { Search as SearchIcon, X, SlidersHorizontal, Star } from "lucide-react"
 import { Card } from "@/components/ui/Card"
 import { SegmentedControl } from "@/components/ui/SegmentedControl"
 import { Place } from "@/types"
-import { placeService } from "@/lib/services"
+import { mapGooglePlaceToPulse } from "@/lib/services"
 import { Skeleton } from "@/components/ui/Skeleton"
 import Image from "next/image"
+import { useMapsLibrary } from "@vis.gl/react-google-maps"
 
-const categories = ["All", "French Cuisine", "Brunch Spot", "Wine Bar", "Café", "Bookstore"]
+const categories = ["All", "Restaurant", "Cafe", "Bar", "Museum", "Park"]
 
 export default function SearchPage() {
   const [query, setQuery] = useState("")
   const [category, setCategory] = useState("All")
   const [results, setResults] = useState<Place[]>([])
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
 
-  const performSearch = useCallback(async () => {
-    setLoading(true)
-    const data = await placeService.search(query, category)
-    setResults(data)
-    setLoading(false)
-  }, [query, category])
+  const placesLib = useMapsLibrary('places')
+  const [placesService, setPlacesService] = useState<google.maps.places.PlacesService | null>(null)
 
   useEffect(() => {
-    const timer = setTimeout(performSearch, 400)
+    if (!placesLib) return
+    const dummy = document.createElement('div')
+    setPlacesService(new placesLib.PlacesService(dummy))
+  }, [placesLib])
+
+  const performSearch = useCallback(async () => {
+    if (!placesService) return
+
+    setLoading(true)
+    const searchTerm = category === "All" ? (query || "Paris Trending") : `${category} ${query}`
+
+    placesService.textSearch(
+      {
+        query: searchTerm,
+        location: new google.maps.LatLng(48.8584, 2.3488),
+        radius: 5000
+      },
+      (results, status) => {
+        if (status === google.maps.places.PlacesServiceStatus.OK && results) {
+          setResults(results.map(mapGooglePlaceToPulse))
+        } else {
+          setResults([])
+        }
+        setLoading(false)
+      }
+    )
+  }, [query, category, placesService])
+
+  useEffect(() => {
+    if (!placesService) return
+    const timer = setTimeout(performSearch, 500)
     return () => clearTimeout(timer)
-  }, [performSearch])
+  }, [performSearch, placesService])
 
   return (
     <div className="p-6 space-y-6">
@@ -40,7 +67,7 @@ export default function SearchPage() {
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search places, categories..."
+            placeholder="Search all real places..."
             className="w-full bg-ios-secondary-bg dark:bg-ios-tertiary-bg h-14 pl-12 pr-12 rounded-2xl outline-none font-medium focus:ring-2 focus:ring-ios-blue transition-all"
           />
           {query && (
@@ -65,7 +92,7 @@ export default function SearchPage() {
 
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="font-bold text-lg">Results</h2>
+          <h2 className="font-bold text-lg">Real Results</h2>
           <button className="text-ios-blue flex items-center gap-1 text-sm font-semibold">
             <SlidersHorizontal className="w-4 h-4" /> Filter
           </button>
@@ -86,13 +113,21 @@ export default function SearchPage() {
             <>
               {results.map((place) => (
                 <Card key={place.id} padding="none" className="overflow-hidden flex flex-col active:scale-[0.98] transition-transform relative h-72">
-                  <div className="h-52 relative">
-                    <Image src={place.image} fill className="object-cover" alt={place.name} />
+                  <div className="h-52 relative bg-ios-secondary-bg">
+                    {place.image && (
+                      <Image
+                        src={place.image}
+                        fill
+                        className="object-cover"
+                        alt={place.name}
+                        unoptimized={place.image.includes('google')} // handle proxying/direct urls
+                      />
+                    )}
                   </div>
                   <div className="p-4 flex items-center justify-between">
                     <div>
-                      <h3 className="font-bold">{place.name}</h3>
-                      <p className="text-xs text-ios-secondary-label">{place.category}</p>
+                      <h3 className="font-bold truncate max-w-[200px]">{place.name}</h3>
+                      <p className="text-xs text-ios-secondary-label capitalize">{place.category}</p>
                     </div>
                     <div className="flex items-center gap-1 bg-ios-secondary-bg dark:bg-white/10 px-2 py-1 rounded-lg">
                       <Star className="w-3 h-3 text-ios-yellow fill-ios-yellow" />
@@ -101,9 +136,9 @@ export default function SearchPage() {
                   </div>
                 </Card>
               ))}
-              {results.length === 0 && (
+              {results.length === 0 && !loading && (
                 <div className="text-center py-20 text-ios-secondary-label">
-                  No results found for your search.
+                  Search for any business or location.
                 </div>
               )}
             </>

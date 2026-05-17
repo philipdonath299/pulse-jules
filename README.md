@@ -5,8 +5,9 @@ Pulse is a high-fidelity, consumer-ready social discovery platform designed to f
 ## ✨ Features
 
 - **Native iOS Aesthetic:** Built following Apple's Human Interface Guidelines (HIG).
+- **Google Maps Integration:** Real-time map interface with Advanced Markers.
+- **Google Places Discovery:** Fully functional discovery engine powered by the Google Places API.
 - **Dynamic Island:** Context-aware top UI for notifications and status.
-- **Real Map Integration:** Powered by Mapbox for a smooth, high-performance mapping experience.
 - **Backend Ready:** Integrated with Supabase for authentication and data management.
 - **Glassmorphism:** Heavy use of translucency and background blurs.
 - **Fluid Animations:** 60fps transitions using Framer Motion 12.
@@ -18,7 +19,7 @@ Pulse is a high-fidelity, consumer-ready social discovery platform designed to f
 - **Styling:** Tailwind CSS 4
 - **Animations:** Framer Motion 12
 - **Database/Auth:** Supabase
-- **Maps:** Mapbox GL
+- **Maps:** Google Maps Platform (@vis.gl/react-google-maps)
 - **State Management:** Zustand 5
 
 ## 🚀 Setup Instructions
@@ -33,7 +34,7 @@ Pulse is a high-fidelity, consumer-ready social discovery platform designed to f
    ```env
    NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
    NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-   NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN=your_mapbox_token
+   NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your_google_maps_key
    ```
 4. **Run the app:**
    ```bash
@@ -44,7 +45,7 @@ Pulse is a high-fidelity, consumer-ready social discovery platform designed to f
 
 - `src/app`: Next.js App Router pages.
 - `src/components`: UI and Layout components.
-- `src/lib`: Services, supabase client, and mock data.
+- `src/lib`: Services, supabase client, and data mappers.
 - `src/store`: Zustand state management.
 - `src/types`: TypeScript definitions.
 
