@@ -47,17 +47,17 @@ export default function RootLayout({
       </head>
       <body className={`${inter.className} overscroll-none`}>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
-          <div className="relative flex min-h-screen flex-col">
-            <DynamicIsland />
-            <GoogleMapsProvider>
+          <GoogleMapsProvider>
+            <div className="relative flex min-h-screen flex-col">
+              <DynamicIsland />
               <main className="flex-1 pb-24">
                 <PageTransition>
                   {children}
                 </PageTransition>
               </main>
-            </GoogleMapsProvider>
-            <FloatingTabBar />
-          </div>
+              <FloatingTabBar />
+            </div>
+          </GoogleMapsProvider>
         </ThemeProvider>
       </body>
     </html>

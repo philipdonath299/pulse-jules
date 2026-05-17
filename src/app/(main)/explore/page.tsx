@@ -6,21 +6,43 @@ import { Star, MapPin, Heart, Share2 } from "lucide-react"
 import { usePulseStore } from "@/store/useStore"
 import { cn } from "@/lib/utils"
 import Image from "next/image"
-import { placeService } from "@/lib/services"
+import { mapGooglePlaceToPulse } from "@/lib/services"
 import { Place } from "@/types"
 import { Skeleton } from "@/components/ui/Skeleton"
+import { useMapsLibrary } from "@vis.gl/react-google-maps"
 
 export default function ExplorePage() {
   const [places, setPlaces] = useState<Place[]>([])
   const [loading, setLoading] = useState(true)
   const { savePlace, savedPlaces, removePlace } = usePulseStore()
 
+  const placesLib = useMapsLibrary('places')
+  const [placesService, setPlacesService] = useState<google.maps.places.PlacesService | null>(null)
+
   useEffect(() => {
-    placeService.getTrending().then(data => {
-      setPlaces(data)
-      setLoading(false)
-    })
-  }, [])
+    if (!placesLib) return
+    const dummy = document.createElement('div')
+    setPlacesService(new placesLib.PlacesService(dummy))
+  }, [placesLib])
+
+  useEffect(() => {
+    if (!placesService || !placesLib) return
+
+    setLoading(true)
+    placesService.textSearch(
+      {
+        query: "Trending restaurants and cafes in Paris",
+        location: { lat: 48.8584, lng: 2.3488 },
+        radius: 5000
+      },
+      (results, status) => {
+        if (status === placesLib.PlacesServiceStatus.OK && results) {
+          setPlaces(results.map(mapGooglePlaceToPulse))
+        }
+        setLoading(false)
+      }
+    )
+  }, [placesService, placesLib])
 
   if (loading) {
     return (
@@ -55,6 +77,7 @@ export default function ExplorePage() {
                 fill
                 priority
                 className="object-cover"
+                unoptimized
               />
               <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/80" />
             </div>
@@ -67,7 +90,7 @@ export default function ExplorePage() {
               >
                 <div className="glass px-3 py-1 rounded-full flex items-center gap-1">
                   <Star className="w-3 h-3 text-ios-yellow fill-ios-yellow" />
-                  <span className="text-white text-xs font-bold">{place.rating}</span>
+                  <span className="text-white text-xs font-bold">{place.rating || 'N/A'}</span>
                 </div>
                 {place.isTrending && (
                   <div className="bg-ios-blue px-3 py-1 rounded-full text-[10px] font-bold text-white">
@@ -77,10 +100,10 @@ export default function ExplorePage() {
               </motion.div>
 
               <div className="space-y-1">
-                <h2 className="text-4xl font-bold text-white tracking-tight leading-none">
+                <h2 className="text-4xl font-bold text-white tracking-tight leading-none truncate max-w-[90%]">
                   {place.name}
                 </h2>
-                <p className="text-white/80 font-medium">{place.category}</p>
+                <p className="text-white/80 font-medium capitalize">{place.category}</p>
               </div>
 
               <div className="flex gap-4">
@@ -103,7 +126,7 @@ export default function ExplorePage() {
                     <MapPin className="w-4 h-4 text-white shrink-0" />
                     <span className="text-white text-xs truncate">{place.location.address}</span>
                   </div>
-                  <div className="bg-white/20 px-2 py-1 rounded-lg text-[10px] font-bold text-white shrink-0">
+                  <div className="bg-white/20 px-2 py-1 rounded-lg text-[10px] font-bold text-white shrink-0 ml-2">
                     350m
                   </div>
                 </div>
