@@ -5,6 +5,7 @@ import { MOCK_PLACES } from "@/lib/data"
 import { Star, MapPin, Heart, Share2 } from "lucide-react"
 import { usePulseStore } from "@/store/useStore"
 import { cn } from "@/lib/utils"
+import Image from "next/image"
 
 export default function ExplorePage() {
   const { savePlace, savedPlaces, removePlace } = usePulseStore()
@@ -20,10 +21,12 @@ export default function ExplorePage() {
             className="h-screen w-full snap-start relative flex flex-col justify-end p-6"
           >
             <div className="absolute inset-0 -z-10">
-              <img
+              <Image
                 src={place.image}
                 alt={place.name}
-                className="h-full w-full object-cover"
+                fill
+                priority
+                className="object-cover"
               />
               <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/80" />
             </div>

@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/Button"
 import { usePulseStore } from "@/store/useStore"
-import { MapPin, Sparkles, Heart } from "lucide-react"
+import { MapPin, Sparkles, Heart, Apple, Mail } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 const steps = [
@@ -22,10 +22,11 @@ const steps = [
     image: "https://images.unsplash.com/photo-1449034446853-66c86144b0ad?w=800&h=1200&fit=crop"
   },
   {
-    title: "Curate Collections",
-    description: "Save your favorite places and share them with your inner circle.",
+    title: "Join Pulse",
+    description: "Connect with the community and save your favorite collections.",
     icon: <Heart className="w-12 h-12 text-ios-green" />,
-    image: "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=800&h=1200&fit=crop"
+    image: "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=800&h=1200&fit=crop",
+    isAuth: true
   }
 ]
 
@@ -37,10 +38,12 @@ export default function OnboardingPage() {
   const handleNext = () => {
     if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1)
-    } else {
-      setOnboarded(true)
-      router.push("/explore")
     }
+  }
+
+  const handleAuth = () => {
+    setOnboarded(true)
+    router.push("/explore")
   }
 
   return (
@@ -84,9 +87,23 @@ export default function OnboardingPage() {
           </div>
 
           <div className="flex flex-col gap-4 pt-4">
-            <Button size="lg" fullWidth onClick={handleNext}>
-              {currentStep === steps.length - 1 ? "Get Started" : "Continue"}
-            </Button>
+            {!steps[currentStep].isAuth ? (
+              <Button size="lg" fullWidth onClick={handleNext}>
+                Continue
+              </Button>
+            ) : (
+              <div className="space-y-3">
+                <Button size="lg" fullWidth className="bg-white text-black hover:bg-white/90" onClick={handleAuth}>
+                  <Apple className="w-5 h-5 mr-2 fill-current" />
+                  Sign in with Apple
+                </Button>
+                <Button size="lg" fullWidth variant="secondary" onClick={handleAuth}>
+                  <Mail className="w-5 h-5 mr-2" />
+                  Sign in with Email
+                </Button>
+              </div>
+            )}
+
             <div className="flex justify-center gap-2">
               {steps.map((_, i) => (
                 <div

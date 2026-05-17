@@ -7,7 +7,7 @@ export const MOCK_PLACES: Place[] = [
     category: "French Cuisine",
     rating: 4.8,
     reviews: 1240,
-    image: "https://images.unsplash.com/photo-1550966841-391ad29a0764?w=800&h=1200&fit=crop",
+    image: "https://images.unsplash.com/photo-1550966841-391ad29a0764?auto=format&fit=crop&w=800&q=80",
     description: "Iconic Parisian brasserie with chic decor and world-class people watching.",
     location: {
       lat: 48.8661,
@@ -22,7 +22,7 @@ export const MOCK_PLACES: Place[] = [
     category: "Brunch Spot",
     rating: 4.6,
     reviews: 850,
-    image: "https://images.unsplash.com/photo-1533089860892-a7c6f0a88666?w=800&h=1200&fit=crop",
+    image: "https://images.unsplash.com/photo-1533089860892-a7c6f0a88666?auto=format&fit=crop&w=800&q=80",
     description: "The best pancakes in the 10th. Famous for seasonal breakfast dishes.",
     location: {
       lat: 48.8719,
@@ -36,7 +36,7 @@ export const MOCK_PLACES: Place[] = [
     category: "Wine Bar",
     rating: 4.9,
     reviews: 2100,
-    image: "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=800&h=1200&fit=crop",
+    image: "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?auto=format&fit=crop&w=800&q=80",
     description: "Classic Saint-Germain bistro offering inventive small plates and natural wines.",
     location: {
       lat: 48.8521,
