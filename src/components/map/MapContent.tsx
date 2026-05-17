@@ -13,6 +13,7 @@ import { Place } from "@/types"
 import { mapGooglePlaceToPulse } from "@/lib/services"
 import { motion, AnimatePresence } from "framer-motion"
 import { cn } from "@/lib/utils"
+import { DemoMap } from "./DemoMap"
 
 const PARIS_CENTER = { lat: 48.8584, lng: 2.3488 }
 
@@ -25,8 +26,14 @@ export function MapContent() {
   const map = useMap()
   const placesLib = useMapsLibrary('places')
   const [placesService, setPlacesService] = useState<google.maps.places.PlacesService | null>(null)
+  const [isApiAvailable, setIsApiAvailable] = useState(true)
 
   useEffect(() => {
+    // Check if Google Maps is actually loaded
+    if (typeof google === 'undefined' || !google.maps) {
+      setIsApiAvailable(false)
+      return
+    }
     if (!map || !placesLib) return
     setPlacesService(new placesLib.PlacesService(map))
   }, [map, placesLib])
@@ -45,7 +52,6 @@ export function MapContent() {
         type: 'restaurant'
       },
       (results, status) => {
-        // Use placesLib instead of global google to avoid crashes
         if (status === placesLib.PlacesServiceStatus.OK && results) {
           const mapped = results.slice(0, 15).map(mapGooglePlaceToPulse)
           setPlaces(mapped)
@@ -59,6 +65,10 @@ export function MapContent() {
   useEffect(() => {
     if (placesService) fetchNearbyPlaces()
   }, [placesService, fetchNearbyPlaces])
+
+  if (!isApiAvailable) {
+    return <DemoMap />
+  }
 
   return (
     <>

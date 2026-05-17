@@ -5,7 +5,7 @@ import { Search as SearchIcon, X, SlidersHorizontal, Star } from "lucide-react"
 import { Card } from "@/components/ui/Card"
 import { SegmentedControl } from "@/components/ui/SegmentedControl"
 import { Place } from "@/types"
-import { mapGooglePlaceToPulse } from "@/lib/services"
+import { placeService } from "@/lib/services"
 import { Skeleton } from "@/components/ui/Skeleton"
 import Image from "next/image"
 import { useMapsLibrary } from "@vis.gl/react-google-maps"
@@ -16,54 +16,38 @@ export function SearchContent() {
   const [query, setQuery] = useState("")
   const [category, setCategory] = useState("All")
   const [results, setResults] = useState<Place[]>([])
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
 
   const placesLib = useMapsLibrary('places')
   const [placesService, setPlacesService] = useState<google.maps.places.PlacesService | null>(null)
 
   useEffect(() => {
-    if (!placesLib) return
-    const dummy = document.createElement('div')
-    try {
-      setPlacesService(new placesLib.PlacesService(dummy))
-    } catch (e) {
-      console.error("Failed to initialize PlacesService", e)
+    if (!placesLib) {
+        const timer = setTimeout(() => {
+          if (loading) {
+            placeService.searchPlaces(query, category).then(data => {
+              setResults(data)
+              setLoading(false)
+            })
+          }
+        }, 2000)
+        return () => clearTimeout(timer)
     }
-  }, [placesLib])
+    const dummy = document.createElement('div')
+    setPlacesService(new placesLib.PlacesService(dummy))
+  }, [placesLib, query, category, loading])
 
   const performSearch = useCallback(async () => {
-    if (!placesService || !placesLib) return
-
     setLoading(true)
-    const searchTerm = category === "All" ? (query || "Top attractions in Paris") : `${category} ${query}`
-
-    try {
-      placesService.textSearch(
-        {
-          query: searchTerm,
-          location: { lat: 48.8584, lng: 2.3488 },
-          radius: 5000
-        },
-        (results, status) => {
-          if (status === placesLib.PlacesServiceStatus.OK && results) {
-            setResults(results.map(mapGooglePlaceToPulse))
-          } else {
-            setResults([])
-          }
-          setLoading(false)
-        }
-      )
-    } catch (e) {
-      console.error("Search failed", e)
-      setLoading(false)
-    }
-  }, [query, category, placesService, placesLib])
+    const data = await placeService.searchPlaces(query, category, placesService)
+    setResults(data)
+    setLoading(false)
+  }, [query, category, placesService])
 
   useEffect(() => {
-    if (!placesService) return
     const timer = setTimeout(performSearch, 500)
     return () => clearTimeout(timer)
-  }, [performSearch, placesService])
+  }, [performSearch])
 
   return (
     <div className="p-6 space-y-6">
@@ -76,7 +60,7 @@ export function SearchContent() {
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search anything in the world..."
+            placeholder="Search the world or try demo..."
             className="w-full bg-ios-secondary-bg dark:bg-ios-tertiary-bg h-14 pl-12 pr-12 rounded-2xl outline-none font-medium focus:ring-2 focus:ring-ios-blue transition-all"
           />
           {query && (
@@ -101,13 +85,13 @@ export function SearchContent() {
 
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="font-bold text-lg">Real-world Results</h2>
+          <h2 className="font-bold text-lg">Results</h2>
           <button className="text-ios-blue flex items-center gap-1 text-sm font-semibold">
             <SlidersHorizontal className="w-4 h-4" /> Filter
           </button>
         </div>
 
-        <div className="grid gap-4 pb-20">
+        <div className="grid gap-4 pb-24">
           {loading ? (
             [1, 2, 3].map(i => (
               <Card key={i} padding="none" className="overflow-hidden h-64">

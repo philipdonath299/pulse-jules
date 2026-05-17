@@ -6,7 +6,7 @@ import { Star, MapPin, Heart, Share2 } from "lucide-react"
 import { usePulseStore } from "@/store/useStore"
 import { cn } from "@/lib/utils"
 import Image from "next/image"
-import { mapGooglePlaceToPulse } from "@/lib/services"
+import { placeService } from "@/lib/services"
 import { Place } from "@/types"
 import { Skeleton } from "@/components/ui/Skeleton"
 import { useMapsLibrary } from "@vis.gl/react-google-maps"
@@ -20,29 +20,30 @@ export default function ExplorePage() {
   const [placesService, setPlacesService] = useState<google.maps.places.PlacesService | null>(null)
 
   useEffect(() => {
-    if (!placesLib) return
+    if (!placesLib) {
+      // If the library isn't loaded after some time, use Demo data
+      const timer = setTimeout(() => {
+        if (loading) {
+          placeService.getExploreFeed().then(data => {
+            setPlaces(data)
+            setLoading(false)
+          })
+        }
+      }, 2000)
+      return () => clearTimeout(timer)
+    }
     const dummy = document.createElement('div')
     setPlacesService(new placesLib.PlacesService(dummy))
-  }, [placesLib])
+  }, [placesLib, loading])
 
   useEffect(() => {
-    if (!placesService || !placesLib) return
+    if (!placesService) return
 
-    setLoading(true)
-    placesService.textSearch(
-      {
-        query: "Trending restaurants and cafes in Paris",
-        location: { lat: 48.8584, lng: 2.3488 },
-        radius: 5000
-      },
-      (results, status) => {
-        if (status === placesLib.PlacesServiceStatus.OK && results) {
-          setPlaces(results.map(mapGooglePlaceToPulse))
-        }
-        setLoading(false)
-      }
-    )
-  }, [placesService, placesLib])
+    placeService.getExploreFeed(placesService).then(data => {
+      setPlaces(data)
+      setLoading(false)
+    })
+  }, [placesService])
 
   if (loading) {
     return (

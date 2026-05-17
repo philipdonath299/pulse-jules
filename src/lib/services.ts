@@ -6,10 +6,9 @@ export const mapGooglePlaceToPulse = (googlePlace: google.maps.places.PlaceResul
 
   if (googlePlace.photos && googlePlace.photos.length > 0) {
     try {
-      // Use the first photo if available
       photoUrl = googlePlace.photos[0].getUrl({ maxWidth: 800, maxHeight: 1200 })
     } catch (e) {
-      console.warn("Could not get photo URL from Google Place", e)
+      console.warn("Photo error", e)
     }
   }
 
@@ -40,22 +39,49 @@ export const mapGooglePlaceToPulse = (googlePlace: google.maps.places.PlaceResul
 }
 
 export const placeService = {
-  async getAll() {
+  // Discovery Engine that handles both Google and Demo data
+  async getExploreFeed(placesService?: google.maps.places.PlacesService | null): Promise<Place[]> {
+    if (placesService) {
+      return new Promise((resolve) => {
+        placesService.textSearch(
+          { query: "Trending restaurants and hidden gems in Paris" },
+          (results, status) => {
+            if (status === 'OK' && results) {
+              resolve(results.map(mapGooglePlaceToPulse))
+            } else {
+              resolve(REAL_PLACES)
+            }
+          }
+        )
+      })
+    }
+    await new Promise(r => setTimeout(r, 600))
     return REAL_PLACES
   },
 
-  async search(query: string, category: string = "All") {
-    // Fallback to internal search if needed, but the components now use Google directly
+  async searchPlaces(query: string, category: string = "All", placesService?: google.maps.places.PlacesService | null): Promise<Place[]> {
+    if (placesService && query) {
+      return new Promise((resolve) => {
+        placesService.textSearch(
+          { query: `${category === "All" ? "" : category} ${query}` },
+          (results, status) => {
+            if (status === 'OK' && results) {
+              resolve(results.map(mapGooglePlaceToPulse))
+            } else {
+              resolve([])
+            }
+          }
+        )
+      })
+    }
+
+    // Demo Search
+    await new Promise(r => setTimeout(r, 400))
     const normalizedQuery = query.toLowerCase()
     return REAL_PLACES.filter(p => {
-      const matchQuery = p.name.toLowerCase().includes(normalizedQuery) ||
-                         p.category.toLowerCase().includes(normalizedQuery)
-      const matchCategory = category === "All" || p.category === category
+      const matchQuery = !query || p.name.toLowerCase().includes(normalizedQuery) || p.category.toLowerCase().includes(normalizedQuery)
+      const matchCategory = category === "All" || p.category.includes(category)
       return matchQuery && matchCategory
     })
-  },
-
-  async getTrending() {
-    return REAL_PLACES.filter(p => p.isTrending)
   }
 }
