@@ -1,0 +1,98 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+
+  --color-ios-blue: #007AFF;
+  --color-ios-green: #34C759;
+  --color-ios-red: #FF3B30;
+  --color-ios-orange: #FF9500;
+  --color-ios-yellow: #FFCC00;
+
+  --color-ios-bg: var(--ios-bg);
+  --color-ios-secondary-bg: var(--ios-secondary-bg);
+  --color-ios-tertiary-bg: var(--ios-tertiary-bg);
+
+  --color-ios-label: var(--ios-label);
+  --color-ios-secondary-label: var(--ios-secondary-label);
+  --color-ios-tertiary-label: var(--ios-tertiary-label);
+
+  --radius-ios-card: 20px;
+  --radius-ios-button: 12px;
+
+  --color-border: var(--ios-secondary-bg);
+}
+
+:root {
+  --ios-bg: #FFFFFF;
+  --ios-secondary-bg: #F2F2F7;
+  --ios-tertiary-bg: #FFFFFF;
+  --ios-label: #000000;
+  --ios-secondary-label: rgba(60, 60, 67, 0.6);
+  --ios-tertiary-label: rgba(60, 60, 67, 0.3);
+
+  --background: var(--ios-bg);
+  --foreground: var(--ios-label);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ios-bg: #000000;
+    --ios-secondary-bg: #1C1C1E;
+    --ios-tertiary-bg: #2C2C2E;
+    --ios-label: #FFFFFF;
+    --ios-secondary-label: rgba(235, 235, 245, 0.6);
+    --ios-tertiary-label: rgba(235, 235, 245, 0.3);
+
+    --background: var(--ios-bg);
+    --foreground: var(--ios-label);
+  }
+}
+
+@layer base {
+  * {
+    border-color: var(--ios-secondary-bg);
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    @apply bg-ios-bg text-ios-label antialiased select-none;
+    font-feature-settings: "ss01", "ss02", "cv01", "cv11";
+    overflow-x: hidden;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    min-height: -webkit-fill-available;
+  }
+
+  html {
+    height: -webkit-fill-available;
+  }
+
+  /* iOS Momentum Scrolling */
+  .smooth-scroll {
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+@layer utilities {
+  .glass {
+    @apply bg-white/70 dark:bg-black/70 backdrop-blur-xl;
+  }
+
+  .glass-dark {
+    @apply bg-black/50 backdrop-blur-lg border border-white/10;
+  }
+
+  .safe-top {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .ios-shadow {
+    box-shadow: 0 4px 24px 0 rgba(0, 0, 0, 0.1);
+  }
+}
